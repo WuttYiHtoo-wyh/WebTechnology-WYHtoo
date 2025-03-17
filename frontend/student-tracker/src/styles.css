@@ -1,0 +1,144 @@
+body {
+    background-color: #EFE4E4;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    background: linear-gradient(135deg, #C4317B, #AC7C7C);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-brand, .btn-outline-light {
+    color: #EFE4E4 !important;
+    transition: color 0.3s ease;
+}
+
+.navbar-brand:hover, .btn-outline-light:hover {
+    color: #D0BAA8 !important;
+}
+
+.summary-box {
+    background-color: #D0BAA8;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    color: #C4317B;
+    font-weight: 600;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.summary-box:hover {
+    transform: translateY(-3px);
+}
+
+.table {
+    background-color: #D0BAA8;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table thead {
+    background: linear-gradient(135deg, #C4317B, #AC7C7C);
+    color: #EFE4E4;
+}
+
+.btn-custom {
+    background: linear-gradient(135deg, #C4317B, #AC7C7C);
+    border: none;
+    color: #EFE4E4;
+    border-radius: 20px;
+    padding: 8px 16px; /* Smaller padding for refined buttons */
+    font-weight: 600;
+    font-size: 14px; /* Smaller font size */
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    background: linear-gradient(135deg, #AC7C7C, #C4317B);
+    color: #EFE4E4;
+    transform: scale(1.05);
+}
+
+/* Smaller buttons specifically for Dashboard */
+.dashboard-actions .btn-custom {
+    padding: 6px 12px; /* Even smaller for homepage */
+    font-size: 13px;
+}
+
+.form-container {
+    max-width: 500px;
+    margin: 50px auto;
+    background-color: #D0BAA8;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.form-container:hover {
+    transform: translateY(-3px);
+}
+
+.report-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #D0BAA8;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar {
+    background-color: #D0BAA8;
+    border-radius: 12px;
+    padding: 15px;
+    color: #C4317B;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+    display: block;
+    margin: 10px 0;
+}
+
+/* 2025 Typography and Elements */
+h3, h5 {
+    color: #C4317B;
+    font-weight: 700;
+}
+
+.card {
+    background-color: #D0BAA8;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+    color: #C4317B;
+    font-weight: 600;
+}
+
+.form-control, .form-select {
+    border: 2px solid #AC7C7C;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #C4317B;
+    box-shadow: 0 0 5px rgba(196, 49, 123, 0.5);
+}
+
+.list-group-item {
+    background-color: #EFE4E4;
+    color: #C4317B;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}

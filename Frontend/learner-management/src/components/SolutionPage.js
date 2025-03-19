@@ -10,10 +10,11 @@ const SolutionPage = () => {
   const [problemDescription, setProblemDescription] = useState('');
   const [solutionDescription, setSolutionDescription] = useState('');
   const [dateResolved, setDateResolved] = useState('');
+  const [status, setStatus] = useState('Pending'); // New state for status
 
   // Fetch existing ticket IDs from localStorage
   useEffect(() => {
-    const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets')) || [];
+    const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets') || '[]');
     if (existingTickets.length > 0) {
       setTicketId(existingTickets[0]); // Default to first ticket
       updateMentorDetails(existingTickets[0]); // Pre-populate mentor details
@@ -50,8 +51,15 @@ const SolutionPage = () => {
       problemDescription,
       solutionDescription,
       dateResolved,
+      status, // Include the status in the form data
     };
     console.log('Solution Data:', formData); // Replace with API call in production
+
+    // Store the full solution record in localStorage
+    const existingSolutions = JSON.parse(localStorage.getItem('solutions') || '[]');
+    existingSolutions.push(formData);
+    localStorage.setItem('solutions', JSON.stringify(existingSolutions));
+
     alert('Solution submitted for Learner ' + learnerId);
     navigate(`/student-details/${learnerId}`);
   };
@@ -126,6 +134,21 @@ const SolutionPage = () => {
               onChange={(e) => setDateResolved(e.target.value)}
               required
             />
+          </label>
+
+          {/* Status Dropdown */}
+          <label style={{ marginTop: '20px' }}>
+            Status:
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              required
+              style={{ width: '100%', padding: '8px', backgroundColor: '#F5C7A9', border: '1px solid #A47864', borderRadius: '6px', color: '#1F2526' }}
+            >
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
           </label>
 
           <div style={{ marginTop: '30px' }}>

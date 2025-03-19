@@ -5,15 +5,26 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState(''); // New state for role selection
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Credentials: username=admin, password=123
-    if (username === 'admin' && password === '123') {
-     
+    // Check credentials and role
+    if (username === '' || password === '' || selectedRole === '') {
+      alert('Please fill in all fields, including role.');
+      return;
+    }
+    if (password !== '123') {
+      alert('Invalid password. Please try again.');
+      return;
+    }
+    // Set role and redirect based on selected role
+    localStorage.setItem('role', selectedRole);
+    alert('Login successful!');
+    if (selectedRole === 'admin') {
       navigate('/home');
-    } else {
-      alert('Invalid credentials. Please try again.');
+    } else if (selectedRole === 'mentor') {
+      navigate('/mentor-dashboard');
     }
   };
 
@@ -22,6 +33,19 @@ const LoginPage = () => {
       <div className="form-container" style={{ width: '100%', maxWidth: '400px', padding: '40px', textAlign: 'center' }}>
         <h1 style={{ marginBottom: '30px' }}>Login</h1>
         <form onSubmit={handleSubmit}>
+          <label>
+            Role:
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              required
+              style={{ width: '100%', padding: '8px', marginBottom: '20px', backgroundColor: '#F5C7A9', border: '1px solid #A47864', borderRadius: '6px', color: '#1F2526' }}
+            >
+              <option value="">Select Role</option>
+              <option value="admin">Admin</option>
+              <option value="mentor">Mentor</option>
+            </select>
+          </label>
           <label>
             Username or Email:
             <input

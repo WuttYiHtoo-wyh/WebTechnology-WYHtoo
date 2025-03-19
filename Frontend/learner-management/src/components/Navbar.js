@@ -1,25 +1,27 @@
+// src/components/Navbar.js
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem('role');
+  const { isAuthenticated, userRole, logout } = useAuth(); // Use AuthContext
 
   const handleLogout = () => {
-    localStorage.removeItem('role');
-    navigate('/');
+    logout(); // Call logout from AuthContext
+    navigate('/'); // Redirect to login page
   };
 
   return (
     <nav className="navbar">
       <h2>Learner Management</h2>
       <div>
-        {userRole && (
+        {isAuthenticated && (
           <Link to="/home" style={{ color: '#EDEDED', textDecoration: 'none', marginLeft: '20px' }}>
             Home
           </Link>
         )}
-        {userRole === 'admin' && (
+        {isAuthenticated && userRole === 'admin' && (
           <>
             <Link to="/admin-panel" style={{ color: '#EDEDED', textDecoration: 'none', marginLeft: '20px' }}>
               Admin Panel
@@ -29,12 +31,12 @@ const Navbar = () => {
             </Link>
           </>
         )}
-        {userRole === 'mentor' && (
+        {isAuthenticated && userRole === 'mentor' && (
           <Link to="/mentor-dashboard" style={{ color: '#EDEDED', textDecoration: 'none', marginLeft: '20px' }}>
             Mentor Dashboard
           </Link>
         )}
-        {userRole && (
+        {isAuthenticated && (
           <button
             onClick={handleLogout}
             style={{

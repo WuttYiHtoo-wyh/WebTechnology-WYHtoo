@@ -1,15 +1,15 @@
+// src/components/ProtectedRoute.js
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ allowedRoles, redirectPath = '/' }) => {
-  // Get the user's role from localStorage (set during login)
-  const userRole = localStorage.getItem('role');
+  const { isAuthenticated, userRole } = useAuth();
 
   // Check if the user is authenticated and has the required role
-  const isAuthenticated = userRole !== null;
   const hasRequiredRole = allowedRoles.includes(userRole);
 
-  // If not authenticated or lacks required role, redirect
+  // If not authenticated or lacks required role, redirect to login page
   if (!isAuthenticated || !hasRequiredRole) {
     return <Navigate to={redirectPath} replace />;
   }

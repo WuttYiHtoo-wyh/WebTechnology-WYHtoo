@@ -1,11 +1,14 @@
+// src/index.js
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './styles.css';
+import { createRoot } from 'react-dom/client';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
+import './styles.css'; // Must be present to apply global styles
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container);
 root.render(
-  <React.StrictMode>
+  <AuthProvider>
     <App />
-  </React.StrictMode>
+  </AuthProvider>
 );

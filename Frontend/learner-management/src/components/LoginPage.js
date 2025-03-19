@@ -1,11 +1,14 @@
+// src/components/LoginPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // Get the login function from AuthContext
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState(''); // New state for role selection
+  const [selectedRole, setSelectedRole] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,13 +21,16 @@ const LoginPage = () => {
       alert('Invalid password. Please try again.');
       return;
     }
-    // Set role and redirect based on selected role
-    localStorage.setItem('role', selectedRole);
+
+    // Update AuthContext with the selected role
+    login(selectedRole);
     alert('Login successful!');
-    if (selectedRole === 'admin') {
-      navigate('/home');
+
+    // Redirect based on selected role
+    if (selectedRole === 'admin' || selectedRole === 'HomePage') {
+      navigate('/home'); // Redirect admin and HomePage roles to Home Page
     } else if (selectedRole === 'mentor') {
-      navigate('/mentor-dashboard');
+      navigate('/MentorDashboard'); // Redirect mentor role to Mentor Dashboard
     }
   };
 

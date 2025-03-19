@@ -28,7 +28,7 @@ function App() {
           <Route index element={<HomePage />} />
         </Route>
         <Route
-          path="/mentor-dashboard"
+          path="/MentorDashboard"
           element={
             <ProtectedRoute allowedRoles={['mentor']} />
           }

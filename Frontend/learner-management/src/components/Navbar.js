@@ -1,15 +1,14 @@
-// src/components/Navbar.js
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, userRole, logout } = useAuth(); // Use AuthContext
+  const { isAuthenticated, userRole, logout } = useAuth();
 
   const handleLogout = () => {
-    logout(); // Call logout from AuthContext
-    navigate('/'); // Redirect to login page
+    logout();
+    navigate('/');
   };
 
   return (

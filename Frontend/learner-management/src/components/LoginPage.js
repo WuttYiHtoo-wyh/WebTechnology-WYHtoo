@@ -291,7 +291,7 @@ const LoginPage = () => {
       if (selectedRole === 'admin' || selectedRole === 'HomePage') {
         navigate('/home');
       } else if (selectedRole === 'mentor') {
-        navigate('/MentorDashboard');
+        navigate('/mentor-dashboard');
       }
     }
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
@@ -22,59 +22,60 @@ function App() {
         <Route
           path="/home"
           element={
-            <ProtectedRoute allowedRoles={['admin']} />
+            <ProtectedRoute allowedRoles={['admin']}>
+              <HomePage />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<HomePage />} />
-        </Route>
+        />
         <Route
-          path="/MentorDashboard"
+          path="/mentor-dashboard"
           element={
-            <ProtectedRoute allowedRoles={['mentor']} />
+            <ProtectedRoute allowedRoles={['mentor']}>
+              <MentorDashboard />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<MentorDashboard />} />
-        </Route>
+        />
         <Route
           path="/admin-panel"
           element={
-            <ProtectedRoute allowedRoles={['admin']} />
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminPanel />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<AdminPanel />} />
-        </Route>
+        />
         <Route
           path="/counselling-overview"
           element={
-            <ProtectedRoute allowedRoles={['admin']} />
+            <ProtectedRoute allowedRoles={['admin']}>
+              <CounsellingOverview />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<CounsellingOverview />} />
-        </Route>
+        />
         <Route
           path="/student-details/:learnerId"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'mentor']} />
+            <ProtectedRoute allowedRoles={['admin', 'mentor']}>
+              <StudentDetail />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<StudentDetail />} />
-        </Route>
+        />
         <Route
           path="/counselling/:learnerId"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'mentor']} />
+            <ProtectedRoute allowedRoles={['admin', 'mentor']}>
+              <CounsellingPage />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<CounsellingPage />} />
-        </Route>
+        />
         <Route
           path="/solution/:learnerId"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'mentor']} />
+            <ProtectedRoute allowedRoles={['admin', 'mentor']}>
+              <SolutionPage />
+            </ProtectedRoute>
           }
-        >
-          <Route index element={<SolutionPage />} />
-        </Route>
+        />
+        <Route path="/unauthorized" element={<div className="container"><h1>Unauthorized Access</h1><p>You do not have permission to view this page.</p></div>} />
       </Routes>
       <Footer />
     </Router>

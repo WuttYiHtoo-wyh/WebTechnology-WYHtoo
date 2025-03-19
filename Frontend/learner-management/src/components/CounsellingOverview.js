@@ -1,6 +1,7 @@
+// src/components/CounsellingOverview.js
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable'; // Import autoTable explicitly
+import autoTable from 'jspdf-autotable';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -47,7 +48,7 @@ const CounsellingOverview = () => {
       record.result || 'Pending',
     ]);
 
-    autoTable(doc, { // Use autoTable with the doc instance
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 30,
@@ -58,18 +59,6 @@ const CounsellingOverview = () => {
 
     doc.save('counselling-overview-2025-03-18.pdf');
   };
-
-  // Check if user is admin
-  useEffect(() => {
-    const userRole = localStorage.getItem('role');
-    if (userRole !== 'admin') {
-      toast.error('Access denied. Only admins can view this page.', {
-        position: 'top-right',
-        autoClose: 3000,
-      });
-      navigate('/home');
-    }
-  }, [navigate]);
 
   return (
     <div className="container">

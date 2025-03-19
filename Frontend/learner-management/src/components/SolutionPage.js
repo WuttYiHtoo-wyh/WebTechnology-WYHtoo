@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Modal from 'react-modal'; // Import react-modal
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable'; // Import jspdf-autotable
+
+Modal.setAppElement('#root'); // Set the root element for accessibility
 
 const SolutionPage = () => {
   const { learnerId } = useParams();
@@ -11,6 +16,7 @@ const SolutionPage = () => {
   const [solutionDescription, setSolutionDescription] = useState('');
   const [dateResolved, setDateResolved] = useState('');
   const [status, setStatus] = useState('Pending'); // New state for status
+  const [modalIsOpen, setModalIsOpen] = useState(false); // State for modal
 
   // Fetch existing ticket IDs from localStorage
   useEffect(() => {
@@ -60,7 +66,59 @@ const SolutionPage = () => {
     existingSolutions.push(formData);
     localStorage.setItem('solutions', JSON.stringify(existingSolutions));
 
-    alert('Solution submitted for Learner ' + learnerId);
+    // Open modal instead of alert
+    setModalIsOpen(true);
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18); // Increased font size for title
+    doc.setTextColor(245, 199, 169); // Light peach #F5C7A9
+    doc.setFillColor(31, 37, 38); // Deep Charcoal #1F2526
+    doc.rect(10, 10, 190, 20, 'F'); // Increased height for better title visibility
+    doc.text(`Solution Report - Learner ${learnerId} (Ticket: ${ticketId}) - Generated on ${new Date().toLocaleDateString()}`, 14, 20);
+
+    const tableColumn = ['Field', 'Value'];
+    const tableRows = [
+      ['Ticket ID', ticketId || 'N/A'],
+      ['Learner ID', learnerId || 'N/A'],
+      ['Mentor Name', mentorName || 'N/A'],
+      ['Mentor Position', mentorPosition || 'N/A'],
+      ['Problem Description', problemDescription || 'N/A'],
+      ['Solution Description', solutionDescription || 'N/A'],
+      ['Date Resolved', dateResolved || 'N/A'],
+      ['Status', status || 'N/A'],
+    ];
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 40, // Adjusted startY for better spacing
+      styles: {
+        fillColor: [31, 37, 38], // Deep Charcoal #1F2526
+        textColor: [245, 199, 169], // Light peach #F5C7A9
+        fontSize: 14, // Increased font size for table
+        cellPadding: 5, // Added padding to prevent text truncation
+        lineWidth: 0.1, // Subtle borders
+        lineColor: [245, 199, 169], // Light peach #F5C7A9 for borders
+      },
+      headStyles: {
+        fillColor: [31, 37, 38], // Deep Charcoal #1F2526
+        textColor: [245, 199, 169], // Light peach #F5C7A9
+      },
+      bodyStyles: {
+        fillColor: [31, 37, 38], // Deep Charcoal #1F2526
+        textColor: [245, 199, 169], // Light peach #F5C7A9
+      },
+    });
+
+    doc.save(`solution-report-${learnerId}-${ticketId}-${new Date().toISOString().split('T')[0]}.pdf`);
+    setModalIsOpen(false);
+    navigate(`/student-details/${learnerId}`);
+  };
+
+  const handleCloseModal = () => {
+    setModalIsOpen(false);
     navigate(`/student-details/${learnerId}`);
   };
 
@@ -166,6 +224,64 @@ const SolutionPage = () => {
           </div>
         </form>
       </div>
+
+      {/* Modal for PDF Download Confirmation */}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={handleCloseModal}
+        style={{
+          content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#2E3536',
+            color: '#EDEDED',
+            border: '2px solid #A47864',
+            borderRadius: '10px',
+            padding: '20px',
+            textAlign: 'center',
+          },
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        }}
+      >
+        <h2 style={{ color: '#F5C7A9' }}>Solution Submitted!</h2>
+        <p>Do you want to download the PDF?</p>
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
+          <button
+            onClick={handleDownloadPDF}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#A47864', // Mocha Mousse for Yes button
+              color: '#EDEDED', // Soft White text for contrast
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Yes
+          </button>
+          <button
+            onClick={handleCloseModal}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#1F2526', // Deep Charcoal for No button
+              color: '#EDEDED', // Soft White text for contrast
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            No
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

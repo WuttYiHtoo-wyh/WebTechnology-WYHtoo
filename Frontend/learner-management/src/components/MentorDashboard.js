@@ -5,83 +5,158 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const MentorDashboard = () => {
   const navigate = useNavigate();
-  const [assignedLearners, setAssignedLearners] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([]);
   const [searchName, setSearchName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Mock data for assigned learners (replace with backend API call)
-    const mockLearners = [
-      { id: '1', name: 'John Doe', email: 'john@example.com', attendance: '85 %', mentorId: 'M1', soc: '2025-01-01', eoc: '2025-06-30', risk: 'On Track' },
-      { id: '2', name: 'Jane Smith', email: 'jane@example.com', attendance: '60 %', mentorId: 'M1', soc: '2025-02-01', eoc: '2025-07-31', risk: 'At Risk' },
-    ];
-    const currentMentorId = 'M1';
-    const learners = mockLearners.filter(learner => learner.mentorId === currentMentorId);
-    setAssignedLearners(learners);
+    const fetchAttendanceData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
 
-    if (learners.some(learner => learner.risk === 'At Risk')) {
-      toast.warning('You have at-risk learners to address!', {
-        position: 'top-right',
-        autoClose: 5000,
-      });
+        const response = await fetch('http://127.0.0.1:8000/api/student-attendance', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          throw new Error('Session expired. Please login again.');
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch attendance data');
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid data format received from server');
+        }
+
+        setAttendanceData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError(err.message);
+        toast.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendanceData();
+  }, [navigate]);
+
+  useEffect(() => {
+    // Check if user is authenticated and is a mentor
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'mentor') {
+      navigate('/login');
     }
-  }, []);
+  }, [navigate]);
 
-  const handleRiskClick = (learnerId) => {
-    navigate(`/student-details/${learnerId}`);
+  const handleRiskClick = (studentId) => {
+    navigate(`/student-details/${studentId}`);
   };
 
-  const filteredLearners = assignedLearners.filter(learner =>
-    learner.name.toLowerCase().includes(searchName.toLowerCase())
+  const filteredStudents = attendanceData.filter(student =>
+    student.name.toLowerCase().includes(searchName.toLowerCase())
   );
 
-  return (
-    <div className="container">
-      <h1>Mentor Dashboard 2025</h1>
-      <div className="search-container">
-        <input
-          type="text"
-          placeholder="Search by Learner Name"
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
-        />
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading attendance data...</p>
+        </div>
       </div>
-      {filteredLearners.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Learner ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Attendance (%)</th>
-              <th>SOC</th>
-              <th>EOC</th>
-              <th>Risk</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredLearners.map((learner) => (
-              <tr key={learner.id}>
-                <td>{learner.id}</td>
-                <td>{learner.name}</td>
-                <td>{learner.email}</td>
-                <td>{learner.attendance}</td>
-                <td>{learner.soc}</td>
-                <td>{learner.eoc}</td>
-                <td>
-                  <button
-                    className={learner.risk === 'On Track' ? 'btn-secondary' : 'btn-accent'}
-                    onClick={() => handleRiskClick(learner.id)}
-                  >
-                    {learner.risk}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p style={{ color: '#EDEDED', textAlign: 'center' }}>No assigned learners found.</p>
-      )}
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-container">
+        <div className="error-container">
+          <h2>Error</h2>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Try Again</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dashboard-container">
+      <div className="content-container">
+        <h1>Mentor Dashboard</h1>
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Search by Learner Name"
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        {filteredStudents.length > 0 ? (
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Learner ID</th>
+                  <th>Name</th>
+                  <th>Module</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Present Days</th>
+                  <th>Absent Days</th>
+                  <th>Attendance (%)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.map((student) => (
+                  <tr key={student.student_id}>
+                    <td>{student.student_id}</td>
+                    <td>{student.name}</td>
+                    <td>{student.module_name}</td>
+                    <td>{student.start_date ? new Date(student.start_date).toLocaleDateString() : 'N/A'}</td>
+                    <td>{student.end_date ? new Date(student.end_date).toLocaleDateString() : 'N/A'}</td>
+                    <td>{student.present_days}</td>
+                    <td>{student.absent_days}</td>
+                    <td>{student.attendance_percentage}%</td>
+                    <td>
+                      <button
+                        className={`status-button ${student.status === 'On Track Learner' ? 'on-track' : 'at-risk'}`}
+                        onClick={() => handleRiskClick(student.student_id)}
+                      >
+                        {student.status}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="no-data-message">
+            <p>No learners found matching your search criteria.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

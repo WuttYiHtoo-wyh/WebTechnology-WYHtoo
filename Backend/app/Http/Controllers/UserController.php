@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -23,7 +24,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password,
+            'password' => bcrypt($request->password),
             'role' => $request->role,
             'phone' => $request->phone,
             'address' => $request->address,
@@ -39,33 +40,47 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-            'role' => 'required|in:admin,mentor'
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+                'role' => 'required|in:admin,mentor,student'
+            ]);
 
-        $user = User::where('email', $request->email)
-                    ->where('role', $request->role)
-                    ->first();
+            $user = User::where('email', $request->email)
+                        ->where('role', $request->role)
+                        ->first();
 
-        if (!$user || !password_verify($request->password, $user->password)) {
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User not found with the specified email and role.'
+                ], 401);
+            }
+
+            if ($request->password !== $user->password) {
+                return response()->json([
+                    'message' => 'Invalid password.'
+                ], 401);
+            }
+
+            $token = $user->createToken('auth-token')->plainTextToken;
+
             return response()->json([
-                'message' => 'Invalid credentials or unauthorized role.'
-            ], 401);
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Login error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred during login.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role
-            ]
-        ]);
     }
 
     public function logout(Request $request)

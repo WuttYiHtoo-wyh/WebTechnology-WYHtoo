@@ -1,0 +1,93 @@
+.module-section {
+  background-color: #2E3536;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(255, 140, 90, 0.2);
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.module-header h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #EDEDED;
+  margin: 0;
+}
+
+.expand-icon {
+  color: #EDEDED;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.module-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.module-content th {
+  text-align: left;
+  padding: 12px;
+  color: #FF8C5A;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 140, 90, 0.2);
+}
+
+.module-content td {
+  padding: 12px;
+  color: #EDEDED;
+  border-bottom: 1px solid rgba(255, 140, 90, 0.1);
+}
+
+.module-content tr:hover {
+  background-color: rgba(255, 140, 90, 0.05);
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-badge.pass {
+  background-color: rgba(129, 201, 149, 0.2);
+  color: #81C995;
+}
+
+.status-badge.fail {
+  background-color: rgba(242, 139, 130, 0.2);
+  color: #F28B82;
+}
+
+.status-badge.pending {
+  background-color: rgba(255, 140, 90, 0.2);
+  color: #FF8C5A;
+}
+
+@media (max-width: 768px) {
+  .module-section {
+    padding: 15px;
+  }
+
+  .module-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .module-content {
+    overflow-x: auto;
+  }
+
+  .module-content th,
+  .module-content td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+} 

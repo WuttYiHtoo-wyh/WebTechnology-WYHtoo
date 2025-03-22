@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
+import './MentorDashboard.css';
 
 const MentorDashboard = () => {
   const navigate = useNavigate();
@@ -18,49 +18,32 @@ const MentorDashboard = () => {
           throw new Error('No authentication token found');
         }
 
-        const response = await fetch('http://127.0.0.1:8000/api/student-attendance', {
-          method: 'GET',
+        const response = await axios.get('http://localhost:8000/api/student-attendance', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
+            'Content-Type': 'application/json'
+          }
         });
-
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          navigate('/login');
-          throw new Error('Session expired. Please login again.');
+        
+        if (response.data.success) {
+          setAttendanceData(response.data.data);
+          setError(null);
+        } else {
+          setError(response.data.message || 'Failed to fetch attendance data');
         }
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch attendance data');
-        }
-
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid data format received from server');
-        }
-
-        setAttendanceData(data);
-        setError(null);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(err.message);
-        toast.error(err.message);
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+        setError(error.response?.data?.message || 'Error fetching data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchAttendanceData();
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
-    // Check if user is authenticated and is a mentor
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.role !== 'mentor') {
       navigate('/login');
@@ -72,7 +55,7 @@ const MentorDashboard = () => {
   };
 
   const filteredStudents = attendanceData.filter(student =>
-    student.name.toLowerCase().includes(searchName.toLowerCase())
+    student['Name'].toLowerCase().includes(searchName.toLowerCase())
   );
 
   if (loading) {
@@ -100,63 +83,82 @@ const MentorDashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <div className="content-container">
-        <h1>Mentor Dashboard</h1>
+      <div className="dashboard-header">
+        <h1>Learner Attendance Dashboard</h1>
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search by Learner Name"
+            placeholder="Search learners..."
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
             className="search-input"
           />
         </div>
-        {filteredStudents.length > 0 ? (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Learner ID</th>
-                  <th>Name</th>
-                  <th>Module</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Present Days</th>
-                  <th>Absent Days</th>
-                  <th>Attendance (%)</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map((student) => (
-                  <tr key={student.student_id}>
-                    <td>{student.student_id}</td>
-                    <td>{student.name}</td>
-                    <td>{student.module_name}</td>
-                    <td>{student.start_date ? new Date(student.start_date).toLocaleDateString() : 'N/A'}</td>
-                    <td>{student.end_date ? new Date(student.end_date).toLocaleDateString() : 'N/A'}</td>
-                    <td>{student.present_days}</td>
-                    <td>{student.absent_days}</td>
-                    <td>{student.attendance_percentage}%</td>
-                    <td>
-                      <button
-                        className={`status-button ${student.status === 'On Track Learner' ? 'on-track' : 'at-risk'}`}
-                        onClick={() => handleRiskClick(student.student_id)}
-                      >
-                        {student.status}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="no-data-message">
-            <p>No learners found matching your search criteria.</p>
-          </div>
-        )}
       </div>
+
+      <div className="dashboard-stats">
+        <div className="stat-box">
+          <span className="stat-label">Total Learners</span>
+          <span className="stat-value">{filteredStudents.length}</span>
+        </div>
+        <div className="stat-box">
+          <span className="stat-label">At Risk</span>
+          <span className="stat-value warning">
+            {filteredStudents.filter(s => s['Status'] === 'At Risk').length}
+          </span>
+        </div>
+        <div className="stat-box">
+          <span className="stat-label">On Track</span>
+          <span className="stat-value success">
+            {filteredStudents.filter(s => s['Status'] === 'OnTrack').length}
+          </span>
+        </div>
+      </div>
+
+      <div className="attendance-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Module</th>
+              <th>Duration</th>
+              <th>Present</th>
+              <th>Absent</th>
+              <th>Attendance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredStudents.map((student, index) => (
+              <tr key={index}>
+                <td>{student['Name']}</td>
+                <td>{student['Module']}</td>
+                <td>
+                  {student['Start Date'] ? new Date(student['Start Date']).toLocaleDateString('en-GB') : 'N/A'} - 
+                  {student['End Date'] ? new Date(student['End Date']).toLocaleDateString('en-GB') : 'N/A'}
+                </td>
+                <td>{student['Present Days'] || 0}</td>
+                <td>{student['Absent Days'] || 0}</td>
+                <td>{student['Attendance (%)'] || 0}%</td>
+                <td>
+                  <button 
+                    className={`status-button ${student['Status'] === 'At Risk' ? 'status-at-risk' : 'status-ontrack'}`}
+                    onClick={() => handleRiskClick(student['Learner ID'])}
+                  >
+                    {student['Status']}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {filteredStudents.length === 0 && (
+        <div className="no-data-message">
+          <p>No learners found matching your search criteria.</p>
+        </div>
+      )}
     </div>
   );
 };

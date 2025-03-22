@@ -33,4 +33,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/user', [UserController::class, 'user']);
     Route::get('/student-attendance', [AttendanceController::class, 'getStudentAttendance']);
+
+    // Student completed modules route
+    Route::get('/student/{id}/completed-modules', [AttendanceController::class, 'getCompletedModules']);
+
+    // Student ongoing modules route
+    Route::get('/student/{id}/ongoing-modules', [AttendanceController::class, 'getOngoingModules']);
+
+    // Student upcoming modules route
+    Route::get('/student/{id}/upcoming-modules', [AttendanceController::class, 'getUpcomingModules']);
 }); 

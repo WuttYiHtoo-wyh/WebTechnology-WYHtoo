@@ -350,7 +350,21 @@ const LoginPage = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      // Debug: Log the raw response
+      const rawResponse = await response.text();
+      console.log('Raw response:', rawResponse);
+      
+      let data;
+      try {
+        data = JSON.parse(rawResponse);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+        setDialogMessage('Server error. Please try again.');
+        setShowDialog(true);
+        return;
+      }
 
       if (response.ok) {
         localStorage.setItem('token', data.token);

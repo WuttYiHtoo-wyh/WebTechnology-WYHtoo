@@ -102,6 +102,17 @@ const CounsellingPage = () => {
         return;
       }
 
+      // Get the selected mentor's email
+      const selectedMentor = mentors.find(m => m.id === parseInt(mentorId));
+      console.log('Selected Mentor:', {
+        name: selectedMentor?.name,
+        email: selectedMentor?.email
+      });
+      console.log('Student:', {
+        name: learnerData.name,
+        email: learnerData.email
+      });
+
       console.log('Submitting counselling data:', {
         student_id: parseInt(learnerId),
         mentor_id: parseInt(mentorId),

@@ -48,7 +48,15 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        return $student->load('user', 'progress', 'counsellings');
+        // Get the student with their user relationship
+        $student = $student->load('user');
+        
+        // If the student has a user relationship, use the user's email
+        if ($student->user) {
+            $student->email = $student->user->email;
+        }
+        
+        return $student;
     }
 
     /**

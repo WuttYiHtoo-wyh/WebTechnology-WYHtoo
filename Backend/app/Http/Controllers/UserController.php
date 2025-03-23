@@ -161,4 +161,16 @@ class UserController extends Controller
             'message' => 'User deleted successfully',
         ]);
     }
+
+    /**
+     * Get all mentors
+     */
+    public function getMentors()
+    {
+        $mentors = User::where('role', 'mentor')
+            ->select('id', 'name', 'email')
+            ->get();
+        
+        return response()->json($mentors);
+    }
 }

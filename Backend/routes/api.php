@@ -14,6 +14,9 @@ Route::post('/login', [UserController::class, 'login']);
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
+// Public routes
+Route::get('/mentors', [UserController::class, 'getMentors']);
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // User routes

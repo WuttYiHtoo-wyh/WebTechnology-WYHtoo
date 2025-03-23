@@ -24,6 +24,14 @@ export const getStudent = async (id) => {
     return response.json();
 };
 
+export const getStudentDetails = async (studentId) => {
+    const response = await fetch(`${API_URL}/students/${studentId}`, {
+        headers: headers(),
+        credentials: 'include',
+    });
+    return response.json();
+};
+
 // Module API calls
 export const getModules = async () => {
     const response = await fetch(`${API_URL}/modules`, {
@@ -76,6 +84,12 @@ export const createCounselling = async (data) => {
         credentials: 'include',
         body: JSON.stringify(data),
     });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to create counselling session');
+    }
+
     return response.json();
 };
 
@@ -85,6 +99,15 @@ export const updateCounselling = async (id, data) => {
         headers: headers(),
         credentials: 'include',
         body: JSON.stringify(data),
+    });
+    return response.json();
+};
+
+// Mentor API calls
+export const getMentors = async () => {
+    const response = await fetch(`${API_URL}/mentors`, {
+        headers: headers(),
+        credentials: 'include',
     });
     return response.json();
 }; 

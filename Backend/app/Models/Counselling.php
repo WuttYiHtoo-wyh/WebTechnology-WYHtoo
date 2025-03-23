@@ -9,17 +9,22 @@ class Counselling extends Model
 {
     use HasFactory;
 
+    protected $table = 'counselling';
+
     protected $fillable = [
+        'ticket_id',
         'student_id',
         'mentor_id',
-        'session_date',
+        'date',
         'notes',
-        'recommendations',
-        'status',
+        'created_at',
+        'updated_at'
     ];
 
     protected $casts = [
-        'session_date' => 'datetime',
+        'date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     public function student()

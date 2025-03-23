@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Counselling;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class CounsellingController extends Controller
 {
@@ -28,18 +30,62 @@ class CounsellingController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'mentor_id' => 'required|exists:users,id',
-            'session_date' => 'required|date',
-            'notes' => 'required|string',
-            'recommendations' => 'nullable|string',
-            'status' => 'required|string|in:scheduled,completed,cancelled',
-        ]);
+        try {
+            $request->validate([
+                'student_id' => 'required|exists:students,id',
+                'mentor_id' => 'required|exists:users,id',
+                'date' => 'required|date',
+                'notes' => 'required|string'
+            ]);
 
-        $counselling = Counselling::create($request->all());
+            // Generate a unique ticket ID
+            $ticketId = 'TICKET' . strtoupper(Str::random(4));
 
-        return response()->json($counselling, 201);
+            // Log the data being inserted
+            \Log::info('Creating counselling record with data:', [
+                'ticket_id' => $ticketId,
+                'student_id' => $request->student_id,
+                'mentor_id' => $request->mentor_id,
+                'date' => $request->date,
+                'notes' => $request->notes
+            ]);
+
+            // Use raw query to match the working SQL
+            $counselling = DB::table('counselling')->insert([
+                'ticket_id' => $ticketId,
+                'student_id' => $request->student_id,
+                'mentor_id' => $request->mentor_id,
+                'date' => $request->date,
+                'notes' => $request->notes,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            if (!$counselling) {
+                throw new \Exception('Failed to create counselling record');
+            }
+
+            return response()->json([
+                'message' => 'Counselling session created successfully',
+                'ticket_id' => $ticketId
+            ], 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error while creating counselling: ' . $e->getMessage());
+            \Log::error('SQL State: ' . $e->getSqlState());
+            \Log::error('Error Code: ' . $e->getCode());
+            return response()->json([
+                'message' => 'Database error occurred',
+                'error' => $e->getMessage(),
+                'sql_state' => $e->getSqlState(),
+                'error_code' => $e->getCode()
+            ], 500);
+        } catch (\Exception $e) {
+            \Log::error('Error while creating counselling: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred while creating the counselling session',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

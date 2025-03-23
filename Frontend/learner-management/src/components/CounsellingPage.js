@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Modal from 'react-modal'; // Import react-modal
+import { createCounselling, getStudentDetails, getMentors } from '../services/apiService';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 Modal.setAppElement('#root'); // Set the root element for accessibility
@@ -15,80 +17,129 @@ const CounsellingPage = () => {
     contact: '',
     parentContact: '',
   });
+  const [mentors, setMentors] = useState([]);
   const [mentorId, setMentorId] = useState('');
   const [mentorName, setMentorName] = useState('');
-  const [mentorPosition, setMentorPosition] = useState('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [modalIsOpen, setModalIsOpen] = useState(false); // State for modal
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for learner and mentors (replace with API call in production)
   useEffect(() => {
-    // Simulate fetching learner data based on learnerId
-    const mockLearner = {
-      id: learnerId,
-      name: `Learner ${learnerId}`,
-      email: `learner${learnerId}@example.com`,
-      contact: `+1-555-01${learnerId}00`,
-      parentContact: `+1-555-02${learnerId}00`,
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching student details for ID:', learnerId);
+        
+        // Fetch student details
+        const studentData = await getStudentDetails(learnerId);
+        console.log('Received student data:', studentData);
+        
+        // Check if student data exists
+        if (!studentData) {
+          throw new Error('No student data received from server');
+        }
+
+        // Set learner data directly from student data
+        setLearnerData({
+          name: studentData.name || 'N/A',
+          email: studentData.email || 'N/A',
+          contact: studentData.contact || 'N/A',
+          parentContact: 'N/A', // Add parent contact to student model if needed
+        });
+
+        // Fetch mentors
+        console.log('Fetching mentors...');
+        const mentorsData = await getMentors();
+        console.log('Received mentors data:', mentorsData);
+        setMentors(mentorsData);
+
+        // Generate unique ticket ID
+        const generateTicketId = () => {
+          const timestamp = Date.now();
+          const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+          return `TICKET-${timestamp}-${random}`;
+        };
+
+        const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets')) || [];
+        let newTicketId;
+        do {
+          newTicketId = generateTicketId();
+        } while (existingTickets.includes(newTicketId));
+
+        setTicketId(newTicketId);
+      } catch (error) {
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          studentId: learnerId
+        });
+        toast.error(`Failed to load student data: ${error.message}`);
+        // Redirect to student details page if there's an error
+        navigate(`/student-details/${learnerId}`);
+      } finally {
+        setLoading(false);
+      }
     };
-    setLearnerData(mockLearner);
 
-    // Generate unique ticket ID
-    const generateTicketId = () => {
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-      return `TICKET-${timestamp}-${random}`;
-    };
-
-    // Check for existing ticket IDs in localStorage
-    const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets')) || [];
-    let newTicketId;
-    do {
-      newTicketId = generateTicketId();
-    } while (existingTickets.includes(newTicketId)); // Ensure no duplicates
-
-    setTicketId(newTicketId);
-  }, [learnerId]);
-
-  const mentors = [
-    { id: 'M1', name: 'Dr. John Smith', position: 'Senior Mentor' },
-    { id: 'M2', name: 'Ms. Emily Johnson', position: 'Junior Mentor' },
-    { id: 'M3', name: 'Mr. David Lee', position: 'Lead Mentor' },
-  ];
+    fetchData();
+  }, [learnerId, navigate]);
 
   const handleMentorChange = (e) => {
-    const selectedMentor = mentors.find(m => m.id === e.target.value);
-    setMentorId(selectedMentor.id);
-    setMentorName(selectedMentor.name);
-    setMentorPosition(selectedMentor.position);
+    const selectedMentor = mentors.find(m => m.id === parseInt(e.target.value));
+    setMentorId(e.target.value);
+    setMentorName(selectedMentor ? `${selectedMentor.name} (${selectedMentor.email})` : '');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Collect form data
-    const formData = {
-      ticketId,
-      learnerId,
-      learnerName: learnerData.name,
-      email: learnerData.email,
-      contact: learnerData.contact,
-      parentContact: learnerData.parentContact,
-      mentorId,
-      mentorName,
-      mentorPosition,
-      date,
-      notes,
-    };
-    console.log('Counselling Data:', formData); // Replace with API call in production
+    try {
+      // Format the date to ensure it's in the correct format (YYYY-MM-DD)
+      const formattedDate = date ? new Date(date).toISOString().split('T')[0] : null;
 
-    // Store ticketId in localStorage to prevent duplicates
-    const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets')) || [];
-    existingTickets.push(ticketId);
-    localStorage.setItem('counsellingTickets', JSON.stringify(existingTickets));
+      if (!formattedDate) {
+        toast.error('Please select a valid date');
+        return;
+      }
 
-    // Open modal instead of alert
-    setModalIsOpen(true);
+      console.log('Submitting counselling data:', {
+        student_id: parseInt(learnerId),
+        mentor_id: parseInt(mentorId),
+        date: formattedDate,
+        notes: notes,
+        status: 'scheduled'
+      });
+
+      const counsellingData = {
+        student_id: parseInt(learnerId),
+        mentor_id: parseInt(mentorId),
+        date: formattedDate,
+        notes: notes,
+        status: 'scheduled'
+      };
+
+      const response = await createCounselling(counsellingData);
+      console.log('Counselling created successfully:', response);
+
+      const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets')) || [];
+      existingTickets.push(ticketId);
+      localStorage.setItem('counsellingTickets', JSON.stringify(existingTickets));
+
+      toast.success('Counselling session scheduled successfully!');
+      setModalIsOpen(true);
+    } catch (error) {
+      console.error('Error creating counselling:', {
+        message: error.message,
+        stack: error.stack,
+        data: {
+          student_id: learnerId,
+          mentor_id: mentorId,
+          date,
+          notes
+        }
+      });
+      toast.error(error.message || 'Failed to schedule counselling session. Please try again.');
+    }
   };
 
   const handleCloseModal = () => {
@@ -101,12 +152,16 @@ const CounsellingPage = () => {
     navigate(`/student-details/${learnerId}`);
   };
 
+  if (loading) {
+    return <div className="container">Loading...</div>;
+  }
+
   return (
     <div className="container">
       <h1>Counselling for Learner (ID: {learnerId})</h1>
       <div className="form-container">
         <form onSubmit={handleSubmit}>
-          {/* Ticket ID (Auto-generated, read-only) */}
+          {/* Ticket ID */}
           <label>
             Ticket ID:
             <input
@@ -117,7 +172,7 @@ const CounsellingPage = () => {
             />
           </label>
 
-          {/* Learner Information (Pre-filled) */}
+          {/* Learner Information */}
           <label style={{ marginTop: '20px' }}>
             Learner ID:
             <input
@@ -154,19 +209,10 @@ const CounsellingPage = () => {
               style={{ backgroundColor: '#2E3536', color: '#EDEDED' }}
             />
           </label>
-          <label style={{ marginTop: '20px' }}>
-            Parent Contact:
-            <input
-              type="text"
-              value={learnerData.parentContact}
-              readOnly
-              style={{ backgroundColor: '#2E3536', color: '#EDEDED' }}
-            />
-          </label>
 
           {/* Mentor Selection */}
           <label style={{ marginTop: '20px' }}>
-            Mentor ID:
+            Mentor:
             <select
               value={mentorId}
               onChange={handleMentorChange}
@@ -176,25 +222,16 @@ const CounsellingPage = () => {
               <option value="">Select a Mentor</option>
               {mentors.map((mentor) => (
                 <option key={mentor.id} value={mentor.id}>
-                  {mentor.id} - {mentor.name}
+                  {mentor.name}
                 </option>
               ))}
             </select>
           </label>
           <label style={{ marginTop: '20px' }}>
-            Mentor Name:
+            Mentor Email:
             <input
               type="text"
-              value={mentorName}
-              readOnly
-              style={{ backgroundColor: '#2E3536', color: '#EDEDED' }}
-            />
-          </label>
-          <label style={{ marginTop: '20px' }}>
-            Mentor Position:
-            <input
-              type="text"
-              value={mentorPosition}
+              value={mentors.find(m => m.id === parseInt(mentorId))?.email || ''}
               readOnly
               style={{ backgroundColor: '#2E3536', color: '#EDEDED' }}
             />
@@ -261,14 +298,13 @@ const CounsellingPage = () => {
         }}
       >
         <h2 style={{ color: '#F5C7A9' }}>Counselling Submitted!</h2>
-       
         <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
           <button
             onClick={handleOk}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#A47864', // Mocha Mousse for OK button
-              color: '#EDEDED', // Soft White text for contrast
+              backgroundColor: '#A47864',
+              color: '#EDEDED',
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
@@ -277,7 +313,6 @@ const CounsellingPage = () => {
           >
             OK
           </button>
-          
         </div>
       </Modal>
     </div>

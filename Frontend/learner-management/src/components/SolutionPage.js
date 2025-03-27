@@ -3,87 +3,177 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Modal from 'react-modal'; // Import react-modal
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable'; // Import jspdf-autotable
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 Modal.setAppElement('#root'); // Set the root element for accessibility
 
 const SolutionPage = () => {
   const { learnerId } = useParams();
   const navigate = useNavigate();
-  const [ticketId, setTicketId] = useState('');
+  const [counsellingId, setCounsellingId] = useState('');
+  const [mentorId, setMentorId] = useState('');
   const [mentorName, setMentorName] = useState('');
-  const [mentorPosition, setMentorPosition] = useState('');
+  const [mentors, setMentors] = useState([]); // Add state for mentors
   const [problemDescription, setProblemDescription] = useState('');
   const [solutionDescription, setSolutionDescription] = useState('');
   const [dateResolved, setDateResolved] = useState('');
   const [status, setStatus] = useState('Pending'); // New state for status
   const [modalIsOpen, setModalIsOpen] = useState(false); // State for modal
+  const [counsellingSessions, setCounsellingSessions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch existing ticket IDs from localStorage
   useEffect(() => {
-    const existingTickets = JSON.parse(localStorage.getItem('counsellingTickets') || '[]');
-    if (existingTickets.length > 0) {
-      setTicketId(existingTickets[0]); // Default to first ticket
-      updateMentorDetails(existingTickets[0]); // Pre-populate mentor details
+    fetchCounsellingSessions();
+    fetchMentors(); // Add mentor fetching
+  }, [learnerId]);
+
+  const fetchCounsellingSessions = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.get(`http://localhost:8000/api/counselling/student/${learnerId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.data || response.data.length === 0) {
+        toast.info('No counselling sessions found for this student');
+        setCounsellingSessions([]);
+        return;
+      }
+
+      // Transform the data to include all necessary fields
+      const tickets = response.data.map(session => ({
+        id: session.id,
+        ticket_id: session.ticket_id,
+        mentor_id: session.mentor_id,
+        mentor_name: session.mentor_name || session.mentor?.name || 'Unknown Mentor' // Fallback for mentor name
+      }));
+      
+      setCounsellingSessions(tickets);
+      if (tickets.length > 0) {
+        setCounsellingId(tickets[0].id);
+        setMentorId(tickets[0].mentor_id);
+        setMentorName(tickets[0].mentor_name);
+      }
+    } catch (error) {
+      console.error('Error fetching counselling sessions:', error);
+      if (error.response?.status === 401) {
+        toast.error('Please login to view counselling sessions');
+      } else if (error.response?.status === 404) {
+        toast.error('No counselling sessions found for this student');
+      } else {
+        toast.error('Failed to load counselling sessions. Please try again later.');
+      }
+      setCounsellingSessions([]);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  // Function to update mentor details based on selected ticketId
-  const updateMentorDetails = (selectedTicketId) => {
-    // Mock data: In a real app, fetch from backend based on ticketId
-    const ticketData = {
-      'TICKET-1698001234567-ABCDEF': { mentorName: 'Dr. John Smith', mentorPosition: 'Senior Mentor' },
-      'TICKET-1698001234568-XYZ123': { mentorName: 'Ms. Emily Johnson', mentorPosition: 'Junior Mentor' },
-      'TICKET-1698001234569-PQR456': { mentorName: 'Mr. David Lee', mentorPosition: 'Lead Mentor' },
-    };
-    const details = ticketData[selectedTicketId] || { mentorName: '', mentorPosition: '' };
-    setMentorName(details.mentorName);
-    setMentorPosition(details.mentorPosition);
   };
 
-  const handleTicketChange = (e) => {
-    const selectedTicketId = e.target.value;
-    setTicketId(selectedTicketId);
-    updateMentorDetails(selectedTicketId);
+  const fetchMentors = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8000/api/mentors', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      setMentors(response.data);
+    } catch (error) {
+      console.error('Error fetching mentors:', error);
+      toast.error('Failed to load mentors');
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleCounsellingChange = (e) => {
+    const selectedId = e.target.value;
+    setCounsellingId(selectedId);
+    
+    // Find the selected counselling session
+    const selectedSession = counsellingSessions.find(session => session.id === parseInt(selectedId));
+    if (selectedSession) {
+      setMentorId(selectedSession.mentor_id);
+      setMentorName(selectedSession.mentor_name || 'Unknown Mentor');
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Collect form data
-    const formData = {
-      ticketId,
-      learnerId,
-      mentorName,
-      mentorPosition,
-      problemDescription,
-      solutionDescription,
-      dateResolved,
-      status, // Include the status in the form data
-    };
-    console.log('Solution Data:', formData); // Replace with API call in production
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Format the date to ensure it's in the correct format (YYYY-MM-DD)
+      const formattedDate = dateResolved ? new Date(dateResolved).toISOString().split('T')[0] : null;
 
-    // Store the full solution record in localStorage
-    const existingSolutions = JSON.parse(localStorage.getItem('solutions') || '[]');
-    existingSolutions.push(formData);
-    localStorage.setItem('solutions', JSON.stringify(existingSolutions));
+      if (!formattedDate) {
+        toast.error('Please select a valid date');
+        return;
+      }
 
-    // Open modal instead of alert
-    setModalIsOpen(true);
+      console.log('Submitting solution data:', {
+        counselling_id: parseInt(counsellingId),
+        mentor_id: parseInt(mentorId),
+        problem_description: problemDescription,
+        solution_description: solutionDescription,
+        date_resolved: formattedDate,
+        status: status
+      });
+
+      const response = await axios.post('http://localhost:8000/api/solutions', {
+        counselling_id: parseInt(counsellingId),
+        mentor_id: parseInt(mentorId),
+        problem_description: problemDescription,
+        solution_description: solutionDescription,
+        date_resolved: formattedDate,
+        status: status
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      toast.success('Solution submitted successfully!');
+      setModalIsOpen(true);
+    } catch (error) {
+      console.error('Error submitting solution:', error);
+      if (error.response?.status === 401) {
+        toast.error('Please login to submit solutions');
+        // Optionally redirect to login page
+      } else if (error.response?.status === 422) {
+        // Handle validation errors
+        const errors = error.response.data.errors;
+        Object.keys(errors).forEach(key => {
+          toast.error(errors[key][0]);
+        });
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to submit solution');
+      }
+    }
   };
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(18); // Increased font size for title
-    doc.setTextColor(245, 199, 169); // Light peach #F5C7A9
-    doc.setFillColor(31, 37, 38); // Deep Charcoal #1F2526
-    doc.rect(10, 10, 190, 20, 'F'); // Increased height for better title visibility
-    doc.text(`Solution Report - Learner ${learnerId} (Ticket: ${ticketId}) - Generated on ${new Date().toLocaleDateString()}`, 14, 20);
+    doc.setFontSize(18);
+    doc.setTextColor(255, 0, 0); // Red color for title
+    doc.setFillColor(31, 37, 38);
+    doc.rect(10, 10, 190, 20, 'F');
+    doc.text(`Solution Report - Learner ${learnerId} (Counselling ID: ${counsellingId}) - Generated on ${new Date().toLocaleDateString()}`, 14, 20);
 
     const tableColumn = ['Field', 'Value'];
     const tableRows = [
-      ['Ticket ID', ticketId || 'N/A'],
+      ['Counselling ID', counsellingId || 'N/A'],
       ['Learner ID', learnerId || 'N/A'],
       ['Mentor Name', mentorName || 'N/A'],
-      ['Mentor Position', mentorPosition || 'N/A'],
       ['Problem Description', problemDescription || 'N/A'],
       ['Solution Description', solutionDescription || 'N/A'],
       ['Date Resolved', dateResolved || 'N/A'],
@@ -93,26 +183,26 @@ const SolutionPage = () => {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 40, // Adjusted startY for better spacing
+      startY: 40,
       styles: {
-        fillColor: [31, 37, 38], // Deep Charcoal #1F2526
-        textColor: [245, 199, 169], // Light peach #F5C7A9
-        fontSize: 14, // Increased font size for table
-        cellPadding: 5, // Added padding to prevent text truncation
-        lineWidth: 0.1, // Subtle borders
-        lineColor: [245, 199, 169], // Light peach #F5C7A9 for borders
+        fillColor: [31, 37, 38],
+        textColor: [255, 0, 0], // Red color for text
+        fontSize: 14,
+        cellPadding: 5,
+        lineWidth: 0.1,
+        lineColor: [255, 0, 0], // Red color for borders
       },
       headStyles: {
-        fillColor: [31, 37, 38], // Deep Charcoal #1F2526
-        textColor: [245, 199, 169], // Light peach #F5C7A9
+        fillColor: [31, 37, 38],
+        textColor: [255, 0, 0], // Red color for header text
       },
       bodyStyles: {
-        fillColor: [31, 37, 38], // Deep Charcoal #1F2526
-        textColor: [245, 199, 169], // Light peach #F5C7A9
+        fillColor: [31, 37, 38],
+        textColor: [255, 0, 0], // Red color for body text
       },
     });
 
-    doc.save(`solution-report-${learnerId}-${ticketId}-${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`solution-report-${learnerId}-${counsellingId}-${new Date().toISOString().split('T')[0]}.pdf`);
     setModalIsOpen(false);
     navigate(`/student-details/${learnerId}`);
   };
@@ -122,47 +212,58 @@ const SolutionPage = () => {
     navigate(`/student-details/${learnerId}`);
   };
 
+  if (loading) {
+    return <div className="container">Loading...</div>;
+  }
+
   return (
     <div className="container">
       <h1>Solution for Learner (ID: {learnerId})</h1>
       <div className="form-container">
         <form onSubmit={handleSubmit}>
-          {/* Ticket ID Selection */}
+          {/* Counselling Session Selection */}
           <label>
             Ticket ID:
             <select
-              value={ticketId}
-              onChange={handleTicketChange}
+              value={counsellingId}
+              onChange={handleCounsellingChange}
               required
               style={{ width: '100%', padding: '8px', backgroundColor: '#F5C7A9', border: '1px solid #A47864', borderRadius: '6px', color: '#1F2526' }}
             >
               <option value="">Select a Ticket</option>
-              {JSON.parse(localStorage.getItem('counsellingTickets') || '[]').map((ticket) => (
-                <option key={ticket} value={ticket}>
-                  {ticket}
+              {counsellingSessions.map((session) => (
+                <option key={session.id} value={session.id}>
+                  Ticket #{session.ticket_id}
                 </option>
               ))}
             </select>
           </label>
 
-          {/* Mentor Details (Pre-filled based on ticketId) */}
+          {/* Mentor Selection Dropdown */}
           <label style={{ marginTop: '20px' }}>
-            Mentor Name:
-            <input
-              type="text"
-              value={mentorName}
-              readOnly
-              style={{ backgroundColor: '#2E3536', color: '#EDEDED' }}
-            />
-          </label>
-          <label style={{ marginTop: '20px' }}>
-            Mentor Position:
-            <input
-              type="text"
-              value={mentorPosition}
-              readOnly
-              style={{ backgroundColor: '#2E3536', color: '#EDEDED' }}
-            />
+            Mentor:
+            <select
+              value={mentorId}
+              onChange={(e) => {
+                const selectedMentorId = parseInt(e.target.value);
+                setMentorId(selectedMentorId);
+                const selectedMentor = mentors.find(m => m.id === selectedMentorId);
+                if (selectedMentor) {
+                  setMentorName(selectedMentor.name);
+                } else {
+                  setMentorName('Unknown Mentor');
+                }
+              }}
+              required
+              style={{ width: '100%', padding: '8px', backgroundColor: '#F5C7A9', border: '1px solid #A47864', borderRadius: '6px', color: '#1F2526' }}
+            >
+              <option value="">Select a Mentor</option>
+              {mentors.map((mentor) => (
+                <option key={mentor.id} value={mentor.id}>
+                  {mentor.name}
+                </option>
+              ))}
+            </select>
           </label>
 
           {/* Problem, Solution, and Date Resolved */}
@@ -205,7 +306,7 @@ const SolutionPage = () => {
             >
               <option value="Pending">Pending</option>
               <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
+              <option value="Resolved">Resolved</option>
             </select>
           </label>
 

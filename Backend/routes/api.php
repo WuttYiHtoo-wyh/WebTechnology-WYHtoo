@@ -8,6 +8,7 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\CounsellingController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\SolutionController;
 
 // Authentication routes
 Route::post('/login', [UserController::class, 'login']);
@@ -33,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Counselling routes
     Route::apiResource('counsellings', CounsellingController::class);
+    Route::get('/counselling/student/{id}', [CounsellingController::class, 'getStudentCounselling']);
 
     Route::get('/user', [UserController::class, 'user']);
     Route::get('/student-attendance', [AttendanceController::class, 'getStudentAttendance']);
@@ -45,4 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Student upcoming modules route
     Route::get('/student/{id}/upcoming-modules', [AttendanceController::class, 'getUpcomingModules']);
+
+    // Solution routes
+    Route::post('/solutions', [SolutionController::class, 'store']);
+    Route::get('/solutions/counselling/{counsellingId}', [SolutionController::class, 'getByCounsellingId']);
+    Route::put('/solutions/{id}', [SolutionController::class, 'update']);
 }); 

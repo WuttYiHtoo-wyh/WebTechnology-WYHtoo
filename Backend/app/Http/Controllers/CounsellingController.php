@@ -44,7 +44,7 @@ class CounsellingController extends Controller
         try {
             // Validate the request
             $validated = $request->validate([
-                'student_id' => 'required|exists:users,id',
+                'student_id' => 'required|exists:students,id',
                 'mentor_id' => 'required|exists:users,id',
                 'date' => 'required|date',
                 'notes' => 'required|string',
@@ -208,5 +208,29 @@ class CounsellingController extends Controller
         return response()->json([
             'message' => 'Counselling session deleted successfully',
         ]);
+    }
+
+    /**
+     * Get counselling sessions for a specific student
+     */
+    public function getStudentCounselling($id)
+    {
+        try {
+            $counsellings = Counselling::where('student_id', $id)
+                ->with(['mentor'])
+                ->get();
+
+            if ($counsellings->isEmpty()) {
+                return response()->json([], 404);
+            }
+
+            return response()->json($counsellings);
+        } catch (\Exception $e) {
+            Log::error('Error fetching student counselling sessions: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to fetch counselling sessions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

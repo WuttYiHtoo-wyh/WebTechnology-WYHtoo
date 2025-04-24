@@ -1,0 +1,261 @@
+.contact-us {
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+.contact-hero {
+  background: linear-gradient(135deg, #1F2526 0%, #2E3536 100%);
+  color: #EDEDED;
+  padding: 80px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  z-index: 1;
+}
+
+.contact-hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.contact-hero p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  position: relative;
+  z-index: 2;
+}
+
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 40px;
+}
+
+.contact-info-section {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.contact-info-section h2 {
+  color: #A47864;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+.contact-info-grid {
+  display: grid;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.contact-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.contact-info-item i {
+  font-size: 1.5rem;
+  color: #A47864;
+  margin-top: 5px;
+}
+
+.info-content h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.info-content p {
+  color: #666;
+  line-height: 1.6;
+  margin: 5px 0;
+}
+
+.social-links {
+  margin-top: 40px;
+}
+
+.social-links h3 {
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.social-icons {
+  display: flex;
+  gap: 20px;
+}
+
+.social-icons a {
+  color: #A47864;
+  font-size: 1.5rem;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: #8B5E3C;
+  transform: translateY(-3px);
+}
+
+.contact-form-section {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form-section h2 {
+  color: #A47864;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+.contact-form {
+  display: grid;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #A47864;
+}
+
+.submit-btn {
+  background: #A47864;
+  color: #fff;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.submit-btn:hover {
+  background: #8B5E3C;
+  transform: translateY(-2px);
+}
+
+.map-section {
+  padding: 60px 20px;
+  background: #f9f9f9;
+}
+
+.map-section h2 {
+  color: #A47864;
+  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.map-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 400px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.map-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.map-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #666;
+}
+
+.map-placeholder i {
+  font-size: 3rem;
+  color: #A47864;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 968px) {
+  .contact-container {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-hero h1 {
+    font-size: 2rem;
+  }
+
+  .contact-hero p {
+    font-size: 1.1rem;
+  }
+
+  .map-container {
+    height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-hero {
+    padding: 60px 20px;
+  }
+
+  .contact-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .contact-info-section,
+  .contact-form-section {
+    padding: 20px;
+  }
+
+  .map-container {
+    height: 300px;
+  }
+} 

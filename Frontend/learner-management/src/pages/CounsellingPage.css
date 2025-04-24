@@ -1,0 +1,213 @@
+.counselling-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.counselling-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #F5C7A9;
+}
+
+.counselling-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #F5C7A9;
+}
+
+.counselling-header p {
+    font-size: 1.1rem;
+    color: #A47864;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.counselling-form {
+    background: #1F2526;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+    border: 1px solid #A47864;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #F5C7A9;
+    font-weight: 500;
+}
+
+.form-control, .mentor-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #A47864;
+    border-radius: 6px;
+    background-color: #F5C7A9;
+    color: #1F2526;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .mentor-select:focus {
+    outline: none;
+    border-color: #F5C7A9;
+    box-shadow: 0 0 0 2px rgba(245, 199, 169, 0.2);
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.submit-btn {
+    background-color: #A47864;
+    color: #F5C7A9;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    background-color: #F5C7A9;
+    color: #1F2526;
+}
+
+.submit-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.counselling-history {
+    background: #1F2526;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #A47864;
+}
+
+.counselling-history h2 {
+    color: #F5C7A9;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.counselling-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.counselling-item {
+    background: #2A3132;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #A47864;
+    transition: transform 0.3s ease;
+}
+
+.counselling-item:hover {
+    transform: translateY(-2px);
+}
+
+.counselling-item h3 {
+    color: #F5C7A9;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.counselling-item p {
+    color: #A47864;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.counselling-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #A47864;
+}
+
+.counselling-meta div {
+    color: #F5C7A9;
+    font-size: 0.9rem;
+}
+
+.counselling-meta strong {
+    color: #A47864;
+}
+
+.counselling-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.status-confirmed {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.status-completed {
+    background-color: #CCE5FF;
+    color: #004085;
+}
+
+.status-cancelled {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+.ticket-id {
+    font-family: monospace;
+    background: #1F2526;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #A47864;
+    color: #F5C7A9;
+}
+
+@media (max-width: 768px) {
+    .counselling-container {
+        padding: 1rem;
+    }
+
+    .counselling-header h1 {
+        font-size: 2rem;
+    }
+
+    .counselling-meta {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .counselling-status {
+        align-self: flex-start;
+    }
+} 

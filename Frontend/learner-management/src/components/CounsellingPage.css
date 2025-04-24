@@ -1,0 +1,267 @@
+.counselling-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #1F2526;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+.counselling-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #F5C7A9;
+}
+
+.counselling-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #F5C7A9;
+}
+
+.counselling-header p {
+    font-size: 1.1rem;
+    color: #A47864;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Ticket Section Styling */
+.ticket-section {
+    background: #2A3132;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #A47864;
+    margin-bottom: 2rem;
+}
+
+.ticket-header {
+    color: #F5C7A9;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #A47864;
+}
+
+.ticket-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ticket-label {
+    color: #F5C7A9;
+    font-weight: 500;
+    min-width: 100px;
+}
+
+.ticket-value {
+    flex: 1;
+    padding: 0.75rem;
+    background: #1F2526;
+    border: 1px solid #A47864;
+    border-radius: 4px;
+    color: #F5C7A9;
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+.counselling-form {
+    background: #1F2526;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+    border: 1px solid #A47864;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #343a40;
+    border-radius: 6px;
+    border: 1px solid #A47864;
+}
+
+.form-section h3 {
+    color: #F5C7A9;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #A47864;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+label {
+    color: #ffffff !important;
+    font-size: 1rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #A47864;
+    border-radius: 4px;
+    background-color: #2A3132;
+    color: #F5C7A9;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #F5C7A9;
+    box-shadow: 0 0 0 2px rgba(245, 199, 169, 0.15);
+}
+
+.readonly-field {
+    background-color: #1F2526 !important;
+    color: #A47864 !important;
+    cursor: not-allowed;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23F5C7A9' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.submit-btn, .cancel-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.submit-btn {
+    background-color: #A47864;
+    color: #F5C7A9;
+    flex: 2;
+}
+
+.submit-btn:hover {
+    background-color: #8B6B5A;
+}
+
+.cancel-btn {
+    background-color: transparent;
+    color: #F5C7A9;
+    border: 1px solid #A47864;
+    flex: 1;
+}
+
+.cancel-btn:hover {
+    background-color: rgba(164, 120, 100, 0.1);
+}
+
+/* Modal Styles */
+.modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    background-color: #2A3132;
+    border: 1px solid #A47864;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    outline: none;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    text-align: center;
+}
+
+.modal-content h2 {
+    color: #F5C7A9;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.modal-content p {
+    color: #A47864;
+    margin-bottom: 2rem;
+}
+
+.modal-btn {
+    background-color: #A47864;
+    color: #F5C7A9;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.modal-btn:hover {
+    background-color: #8B6B5A;
+}
+
+@media (max-width: 768px) {
+    .counselling-container {
+        padding: 1rem;
+    }
+
+    .counselling-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .counselling-form {
+        padding: 1rem;
+    }
+
+    .form-section {
+        padding: 1rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .submit-btn, .cancel-btn {
+        width: 100%;
+    }
+} 

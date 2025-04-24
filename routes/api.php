@@ -10,11 +10,12 @@ use App\Http\Controllers\CounsellingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\SolutionController;
 use App\Http\Controllers\MentorController;
+use App\Http\Controllers\AuthController;
 
 // Authentication routes
-Route::post('/login', [UserController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [UserController::class, 'register']);
-Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // Public routes
 Route::get('/mentors', [UserController::class, 'getMentors']);
@@ -40,7 +41,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('progress', ProgressController::class);
     
     // Counselling routes
-    Route::apiResource('counsellings', CounsellingController::class);
+    Route::prefix('counsellings')->group(function () {
+        Route::post('/', [CounsellingController::class, 'store'])->name('counsellings.store');
+        Route::get('/', [CounsellingController::class, 'index'])->name('counsellings.index');
+        Route::get('/{counselling}', [CounsellingController::class, 'show'])->name('counsellings.show');
+        Route::put('/{counselling}', [CounsellingController::class, 'update'])->name('counsellings.update');
+        Route::delete('/{counselling}', [CounsellingController::class, 'destroy'])->name('counsellings.destroy');
+    });
     Route::get('/counselling/student/{id}', [CounsellingController::class, 'getStudentCounselling']);
     Route::get('/counselling-statistics', [CounsellingController::class, 'statistics']);
     Route::get('/counselling-overview', [CounsellingController::class, 'overview']);
@@ -73,4 +80,26 @@ Route::middleware('auth:sanctum')->group(function () {
         ->where('mentor', '[0-9]+');
 
     Route::post('/users/import', [UserController::class, 'import']);
+});
+
+Route::middleware('api')->group(function () {
+    Route::post('/counsellings', [CounsellingController::class, 'store']);
+    // ... other routes
+});
+
+// Verify routes are registered
+Route::get('/routes', function() {
+    $routes = collect(Route::getRoutes())->map(function ($route) {
+        return [
+            'uri' => $route->uri(),
+            'name' => $route->getName(),
+            'methods' => $route->methods(),
+            'action' => $route->getActionName(),
+        ];
+    });
+    return response()->json($routes);
+});
+
+Route::get('/test-cors', function() {
+    return response()->json(['message' => 'CORS is working']);
 }); 

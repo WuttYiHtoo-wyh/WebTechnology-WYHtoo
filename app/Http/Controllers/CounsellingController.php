@@ -20,6 +20,7 @@ class CounsellingController extends Controller
     public function __construct(CalendarService $calendarService)
     {
         $this->calendarService = $calendarService;
+        Log::info('[CounsellingController] Initialized with calendar service');
     }
 
     /**
@@ -27,7 +28,22 @@ class CounsellingController extends Controller
      */
     public function index()
     {
-        return Counselling::with(['student', 'mentor'])->get();
+        Log::info('[CounsellingController][index] Fetching all counselling sessions');
+        try {
+            $counsellings = Counselling::with(['student', 'mentor'])->get();
+            Log::info('[CounsellingController][index] Successfully retrieved counselling sessions', [
+                'count' => $counsellings->count(),
+                'timestamp' => now()
+            ]);
+            return $counsellings;
+        } catch (\Exception $e) {
+            Log::error('[CounsellingController][index] Failed to fetch counselling sessions', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'timestamp' => now()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -43,10 +59,12 @@ class CounsellingController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('[CounsellingController][store] Starting counselling session creation', [
+            'request_data' => $request->except(['password', 'token'])
+        ]);
+
         try {
-            Log::info('Creating new counselling record', ['request' => $request->all()]);
-            
-            // Validate the request data
+            // Validate request
             $validated = $request->validate([
                 'student_id' => 'required|exists:students,id',
                 'mentor_id' => 'required|exists:users,id',
@@ -54,135 +72,86 @@ class CounsellingController extends Controller
                 'notes' => 'required|string'
             ]);
 
-            // Get student and mentor details
-            $student = Student::find($validated['student_id']);
-            $mentor = User::find($validated['mentor_id']);
+            DB::beginTransaction();
+            try {
+                // Generate ticket ID
+                $ticketId = 'CL-' . time();
 
-            if (!$student || !$mentor) {
-                throw new \Exception('Student or mentor not found');
-            }
-
-            // Generate ticket ID in the format "CL-{timestamp}"
-            $ticketId = 'CL-' . time();
-
-            // Insert the counselling record
-            $counselling = DB::table('counselling')->insert([
-                'ticket_id' => $ticketId,
-                'learner_id' => $validated['student_id'],
-                'mentor_id' => $validated['mentor_id'],
-                'date' => $validated['date'],
-                'notes' => $validated['notes'],
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-
-            if (!$counselling) {
-                Log::error('Failed to create counselling record');
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to create counselling record'
-                ], 500);
-            }
-
-            // Create Google Calendar event
-            if ($this->calendarService && $this->calendarService->isServiceInitialized()) {
-                try {
-                    // Convert date string to Carbon instance and set to 2pm
-                    $startDateTime = Carbon::parse($validated['date'])->setTime(14, 0); // Set to 2:00 PM
-                    $endDateTime = $startDateTime->copy()->addHour(); // Add 1 hour
-
-                    Log::info('Creating calendar event with attendees:', [
-                        'student_email' => $student->email,
-                        'mentor_email' => $mentor->email,
-                        'ticket_id' => $ticketId,
-                        'date' => $startDateTime->format('Y-m-d H:i:s'),
-                        'timezone' => 'Asia/Yangon'
-                    ]);
-
-                    $event = $this->calendarService->createEvent([
-                        'summary' => 'StrategyFirst College Counselling Center - StrategyFirst College Counselling Session',
-                        'description' => "Counselling session for {$student->name} with {$mentor->name}.\nTicket ID: {$ticketId}\nNotes: {$validated['notes']}",
-                        'start' => [
-                            'dateTime' => $startDateTime->format('c'),
-                            'timeZone' => 'Asia/Yangon', // GMT+6:30
-                        ],
-                        'end' => [
-                            'dateTime' => $endDateTime->format('c'),
-                            'timeZone' => 'Asia/Yangon', // GMT+6:30
-                        ],
-                        'attendees' => [
-                            ['email' => $student->email],
-                            ['email' => $mentor->email],
-                        ],
-                        'reminders' => [
-                            'useDefault' => false,
-                            'overrides' => [
-                                ['method' => 'email', 'minutes' => 24 * 60], // 24 hours before
-                                ['method' => 'email', 'minutes' => 60], // 1 hour before
-                            ],
-                        ],
-                        'guestsCanSeeOtherGuests' => true,
-                        'guestsCanModify' => false,
-                        'transparency' => 'opaque',
-                        'visibility' => 'public',
-                        'sendUpdates' => 'all',
-                        'sendNotifications' => true,
-                    ]);
-
-                    if ($event) {
-                        Log::info('Calendar event created successfully', [
-                            'event_id' => $event->getId(),
-                            'html_link' => $event->htmlLink,
-                            'attendees' => array_map(function($attendee) {
-                                return [
-                                    'email' => $attendee->getEmail(),
-                                    'response_status' => $attendee->getResponseStatus()
-                                ];
-                            }, $event->getAttendees()),
-                            'organizer' => $event->getOrganizer() ? [
-                                'email' => $event->getOrganizer()->getEmail(),
-                                'display_name' => $event->getOrganizer()->getDisplayName()
-                            ] : null
-                        ]);
-                    } else {
-                        Log::error('Failed to create Google Calendar event', [
-                            'student_email' => $student->email,
-                            'mentor_email' => $mentor->email,
-                            'error' => 'No event object returned'
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Error creating calendar event: ' . $e->getMessage());
-                    Log::error('Stack trace: ' . $e->getTraceAsString());
-                }
-            } else {
-                Log::error('Calendar service not initialized');
-            }
-
-            Log::info('Counselling record created successfully', [
-                'ticket_id' => $ticketId,
-                'student_id' => $validated['student_id']
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Counselling record created successfully',
-                'data' => [
+                // Insert counselling record
+                $counselling = DB::table('counselling')->insert([
                     'ticket_id' => $ticketId,
-                    'display_ticket_id' => $ticketId,
                     'learner_id' => $validated['student_id'],
                     'mentor_id' => $validated['mentor_id'],
                     'date' => $validated['date'],
-                    'notes' => $validated['notes']
-                ]
-            ]);
+                    'notes' => $validated['notes'],
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                if (!$counselling) {
+                    throw new \Exception('Failed to create counselling record');
+                }
+
+                DB::commit();
+
+                // Try to create calendar event, but don't fail if it doesn't work
+                try {
+                    if ($this->calendarService && $this->calendarService->isServiceInitialized()) {
+                        $startDateTime = Carbon::parse($validated['date'])->setTime(14, 0);
+                        $endDateTime = $startDateTime->copy()->addHour();
+
+                        $event = $this->calendarService->createEvent([
+                            'summary' => 'StrategyFirst College Counselling Session',
+                            'description' => "Counselling session.\nTicket ID: {$ticketId}\nNotes: {$validated['notes']}",
+                            'start' => [
+                                'dateTime' => $startDateTime->format('c'),
+                                'timeZone' => 'Asia/Yangon',
+                            ],
+                            'end' => [
+                                'dateTime' => $endDateTime->format('c'),
+                                'timeZone' => 'Asia/Yangon',
+                            ]
+                        ]);
+
+                        Log::info('[CounsellingController][store] Calendar event created', [
+                            'event_id' => $event->getId()
+                        ]);
+                    }
+                } catch (\Exception $calendarError) {
+                    // Log calendar error but don't fail the request
+                    Log::warning('[CounsellingController][store] Failed to create calendar event', [
+                        'error' => $calendarError->getMessage(),
+                        'ticket_id' => $ticketId
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Counselling session scheduled successfully',
+                    'data' => [
+                        'ticket_id' => $ticketId,
+                        'display_ticket_id' => $ticketId,
+                        'learner_id' => $validated['student_id'],
+                        'mentor_id' => $validated['mentor_id'],
+                        'date' => $validated['date'],
+                        'notes' => $validated['notes']
+                    ]
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
 
         } catch (\Exception $e) {
-            Log::error('Error creating counselling record: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('[CounsellingController][store] Error creating counselling record', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error creating counselling record',
+                'message' => 'Failed to create counselling record',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -370,7 +339,10 @@ class CounsellingController extends Controller
 
     public function statistics()
     {
+        Log::info('[CounsellingController][statistics] Fetching counselling statistics');
         try {
+            $startTime = microtime(true);
+            
             $statistics = DB::select("
                 SELECT 
                     COUNT(*) AS total_counselling,
@@ -382,32 +354,39 @@ class CounsellingController extends Controller
                 LEFT JOIN solutions s ON c.id = s.counselling_id
             ");
 
-            if (empty($statistics)) {
-                return response()->json([
-                    'success' => true,
-                    'data' => [
-                        'total_counselling' => 0,
-                        'not_yet_completed' => 0,
-                        'in_progress' => 0,
-                        'pending' => 0,
-                        'resolved' => 0
-                    ]
-                ]);
-            }
+            $endTime = microtime(true);
+            $executionTime = ($endTime - $startTime) * 1000; // Convert to milliseconds
+
+            Log::info('[CounsellingController][statistics] Statistics retrieved successfully', [
+                'execution_time_ms' => round($executionTime, 2),
+                'total_counselling' => $statistics[0]->total_counselling ?? 0,
+                'not_yet_completed' => $statistics[0]->not_yet_completed ?? 0,
+                'in_progress' => $statistics[0]->in_progress ?? 0,
+                'pending' => $statistics[0]->pending ?? 0,
+                'resolved' => $statistics[0]->resolved ?? 0,
+                'timestamp' => now()
+            ]);
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'total_counselling' => $statistics[0]->total_counselling,
-                    'not_yet_completed' => $statistics[0]->not_yet_completed,
-                    'in_progress' => $statistics[0]->in_progress,
-                    'pending' => $statistics[0]->pending,
-                    'resolved' => $statistics[0]->resolved
+                    'total_counselling' => $statistics[0]->total_counselling ?? 0,
+                    'not_yet_completed' => $statistics[0]->not_yet_completed ?? 0,
+                    'in_progress' => $statistics[0]->in_progress ?? 0,
+                    'pending' => $statistics[0]->pending ?? 0,
+                    'resolved' => $statistics[0]->resolved ?? 0
                 ]
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error fetching counselling statistics: ' . $e->getMessage());
+            Log::error('[CounsellingController][statistics] Error fetching statistics', [
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString(),
+                'timestamp' => now()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching counselling statistics: ' . $e->getMessage()

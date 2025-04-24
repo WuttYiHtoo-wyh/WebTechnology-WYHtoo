@@ -6,6 +6,7 @@ use App\Http\Controllers\CounsellingController;
 use App\Services\CalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\GoogleCalendarController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -51,3 +52,5 @@ Route::get('/test-calendar-auth', function () {
         ]);
     }
 });
+
+Route::get('/google/oauth/callback', [GoogleCalendarController::class, 'handleCallback']);

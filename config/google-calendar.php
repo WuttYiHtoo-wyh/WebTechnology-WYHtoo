@@ -38,4 +38,8 @@ return [
      * The credentials file path where the client credentials will be stored.
      */
     'credentials_path' => storage_path('app/google-calendar-credentials.json'),
+
+    'access_type' => 'offline',
+    'approval_prompt' => 'force',
+    'prompt' => 'consent select_account'
 ]; 
